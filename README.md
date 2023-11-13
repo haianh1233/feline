@@ -226,7 +226,7 @@ For example:
 3. example config for `String` value: `#{Internet.safe_email_address('abc')}`
 4. example config for `double` value: `#{Commerce.price(5.5, 6.5)}`
 5. example config for `long` value: `#{Number.random_double(10, 10000L, 100000L)}`
-6. example config for `boolean` value: `#{Lorem.characters(false)}` | `#{Lorem.characters(false)}`
+6. example config for `boolean` value: `#{Lorem.characters(true)}` | `#{Lorem.characters(false)}`
 
 **Important Node on Function Support**: The current implementation does not support direct invocation of functions like `Faker.botify(String)`
 

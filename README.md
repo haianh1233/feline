@@ -20,7 +20,6 @@ Project Feline is a sophisticated data generation tool designed to populate Kafk
 ```yaml
   KAFKA_BOOTSTRAP_SERVERS: for kafka bootstrap servers - default = localhost:9092
   KAFKA_SCHEMA_REGISTRY_URL: for schema registry url - default = http://localhost:8081
-  KAFKA_KSQL_QUERIES_FILE: for ksql queries file - default = ./config/ksql-queries.sql
   CONFIG_FILE_PATH: for data generator config file path - default = ./config/config.json
 ```
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techcat.feline.config.ApplicationEnvConfigLoader;
 import com.techcat.feline.datagen.model.ConfigEntry;
+import com.techcat.feline.datagen.model.Data;
 import com.techcat.feline.kafka.KafkaClientFactory;
 import com.techcat.feline.kafka.SchemaRegistryClientFactory;
 import com.techcat.feline.utils.AvroUtils;
@@ -24,15 +25,17 @@ import static com.techcat.feline.config.ApplicationConfig.CONFIG_FILE_PATH;
 
 @Slf4j
 public class DataGeneratorService {
-    private final DataInterpreterService dataInterpreterService;
+    private final DataInterpreter dataInterpreter;
     private final ObjectMapper objectMapper;
+    private final ConfigInterpreter configInterpreter;
 
     private final Map<String, Schema> schemaCache = new HashMap<>();
     private final Map<String, Integer> schemaIdCache = new HashMap<>();
 
     public DataGeneratorService() {
-        this.dataInterpreterService = new DataInterpreterService();
+        this.dataInterpreter = new DataInterpreter();
         this.objectMapper = new ObjectMapper();
+        this.configInterpreter = new ConfigInterpreter();
     }
 
     public void start() throws Exception {
@@ -83,19 +86,19 @@ public class DataGeneratorService {
             KafkaProducer<Object, Object> kafkaProducer = kafkaClientFactory.kafkaProducer();
             while (true) {
 
-                Map<String, Object> data = dataInterpreterService.interpretConfig(config);
+                Data data = dataInterpreter.interpretConfig(config);
 
-                Object value = data.get("value");
+                Object value = data.getValue();
                 System.out.println(config.getTopic() + " " + value);
                 kafkaProducer.send(
-                        createProducerRecord(config.getTopic(), data.get("key"), value),
+                        createProducerRecord(config.getTopic(), data.getKey(), value),
                         (metadata, exception) -> {
                             if (exception != null) {
                                 log.error("Error when sending data to Kafka", exception);
                                 throw new RuntimeException(exception);
                             }
 
-                            dataInterpreterService.saveToCache(config.getTopic(), data);
+                            dataInterpreter.saveToCache(config.getTopic(), data);
                         }
                 );
 
@@ -117,7 +120,7 @@ public class DataGeneratorService {
         try {
             // Interpret schema
             try (KafkaClientFactory kafkaClientFactory = new KafkaClientFactory()){
-                Schema schema = dataInterpreterService.interpretSchemaFromConfig(configEntry);
+                Schema schema = configInterpreter.interpretSchemaFromConfig(configEntry);
 
                 // Create topic
                 kafkaClientFactory.kafkaAdmin()

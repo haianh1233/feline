@@ -3,8 +3,10 @@ package com.techcat.feline.datagen;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techcat.feline.config.ApplicationEnvConfigLoader;
+import com.techcat.feline.datagen.consumer.DataGenConsumer;
 import com.techcat.feline.datagen.model.ConfigEntry;
 import com.techcat.feline.datagen.model.Data;
+import com.techcat.feline.datagen.producer.DataGenProducer;
 import com.techcat.feline.kafka.KafkaClientFactory;
 import com.techcat.feline.kafka.SchemaRegistryClientFactory;
 import com.techcat.feline.utils.AvroUtils;
@@ -43,7 +45,7 @@ public class DataGeneratorService {
         List<ConfigEntry> configs = objectMapper.readValue(Path.of(configFilePath).toFile(), new TypeReference<>() {});
         configs.forEach(this::registerSchema);
 
-        ExecutorService executorService = Executors.newFixedThreadPool(configs.size());
+        ExecutorService executorService = Executors.newFixedThreadPool(configs.size() + 1); // 1 for consumer
         CompletionService<Void> completionService = new ExecutorCompletionService<>(executorService);
 
         submitTasks(configs, completionService);
@@ -53,11 +55,11 @@ public class DataGeneratorService {
 
     private void submitTasks(List<ConfigEntry> configs, CompletionService<Void> completionService) {
         for (ConfigEntry config : configs) {
-            completionService.submit(() -> {
-                sendFakeDataToKafka(config);
-                return null;
-            });
+            DataGenProducer producer = new DataGenProducer(config);
+            completionService.submit(producer, null);
         }
+
+        completionService.submit(new DataGenConsumer(schemaCache, schemaIdCache), null);
     }
 
     private static void handleTaskCompletion(CompletionService<Void> completionService) throws InterruptedException {
@@ -78,39 +80,6 @@ public class DataGeneratorService {
             }
         } catch (InterruptedException e) {
             executorService.shutdownNow();
-        }
-    }
-
-    private void sendFakeDataToKafka(ConfigEntry config) {
-        try (KafkaClientFactory kafkaClientFactory = new KafkaClientFactory()) {
-            KafkaProducer<Object, Object> kafkaProducer = kafkaClientFactory.kafkaProducer();
-            while (true) {
-
-                Data data = dataInterpreter.interpretConfig(config);
-
-                Object value = data.getValue();
-                System.out.println(config.getTopic() + " " + value);
-                kafkaProducer.send(
-                        createProducerRecord(config.getTopic(), data.getKey(), value),
-                        (metadata, exception) -> {
-                            if (exception != null) {
-                                log.error("Error when sending data to Kafka", exception);
-                                throw new RuntimeException(exception);
-                            }
-
-                            dataInterpreter.saveToCache(config.getTopic(), data);
-                        }
-                );
-
-                if (config.getConfig() != null && config.getConfig().getThrottle() != null) {
-                    try {
-                        Thread.sleep(config.getConfig().getThrottle().getMs());
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            }
-
         }
     }
 

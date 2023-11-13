@@ -12,10 +12,8 @@ import static com.techcat.feline.datagen.model.GenerationStrategy.MATCHING;
 
 public class DataInterpreter {
     private final FakerService fakerService;
-    private final CacheService cacheService;
     public DataInterpreter() {
         this.fakerService = new FakerService();
-        this.cacheService = new CacheService();
     }
 
     public Data interpretConfig(ConfigEntry config) {
@@ -25,7 +23,7 @@ public class DataInterpreter {
         if (config.getKey() != null) {
             if (MATCHING.getName().equals(config.getKey().getGen())) {
                 // TODO handle complex matching
-                data.setKey(cacheService.getRandomKeyData(config.getKey().getMatching().split("\\.")[0]));
+                data.setKey(TopicCacheManager.getRandomKeyData(config.getKey().getMatching().split("\\.")[0]));
             } else {
                 data.setKey(fakerService.interpretDataEntry(config.getKey()));
             }
@@ -38,7 +36,7 @@ public class DataInterpreter {
     }
 
     public void saveToCache(String topic, Data data) {
-        cacheService.addData(topic, (String) data.getKey());
+        TopicCacheManager.addData(topic, data);
     }
 
 
@@ -57,7 +55,7 @@ public class DataInterpreter {
                     DataEntry dataEntry = new ObjectMapper().convertValue(value, DataEntry.class);
                     if (MATCHING.getName().equals(dataEntry.getGen())) {
                         String[] parts = dataEntry.getMatching().split("\\.");
-                        Object cachedValue = cacheService.getRandomKeyData(parts[0]);
+                        Object cachedValue = TopicCacheManager.getRandomKeyData(parts[0]);
                         result.put(field, cachedValue);
                     } else {
                         result.put(field, fakerService.interpretDataEntry(dataEntry));

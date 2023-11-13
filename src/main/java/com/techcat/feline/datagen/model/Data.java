@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Data {
+    private String topic;
     private Object key;
     private Object value;
 }

@@ -1,0 +1,61 @@
+version: '3.8'
+services:
+  zookeeper:
+    image: "confluentinc/cp-zookeeper:latest"
+    container_name: zookeeper
+    restart: always
+    ports:
+      - "22181:2181"
+    network_mode: host
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    healthcheck:
+      test: nc -zv localhost 2181 || exit 1
+      interval: 5s
+      retries: 25
+
+  kafka:
+    image: "confluentinc/cp-kafka:latest"
+    container_name: kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    restart: always
+    ports:
+      - "9092:9092"
+    network_mode: host
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ZOOKEEPER_CONNECT: localhost:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS: 1
+      KAFKA_BROKER_ID: 1
+    healthcheck:
+      test: nc -zv localhost 9092|| exit 1
+      interval: 5s
+      retries: 25
+
+  schema-registry:
+    image: "confluentinc/cp-schema-registry:latest"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    container_name: schema-registry
+    ports:
+      - "8081:8081"
+    network_mode: host
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: localhost
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://localhost:9092'
+    healthcheck:
+      test: nc -zv localhost 8081|| exit 1
+      interval: 5s
+      retries: 25
+
+  kafka-client:
+    image: "confluentinc/cp-kafka:latest"
+    network_mode: host
+    container_name: kafka-client
+    command: [ "/bin/bash", "-c", "sleep infinity" ]

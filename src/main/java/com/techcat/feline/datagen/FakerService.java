@@ -2,11 +2,14 @@ package com.techcat.feline.datagen;
 
 import com.github.javafaker.Faker;
 import com.techcat.feline.datagen.model.DataEntry;
+import com.techcat.feline.datagen.model.GenerationStrategy;
 import com.techcat.feline.utils.ParameterConverter;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 import java.util.Locale;
+
+import static com.techcat.feline.datagen.model.GenerationStrategy.WITH;
 
 public class FakerService {
     private final Faker faker;
@@ -16,7 +19,7 @@ public class FakerService {
     }
 
     public Object interpretDataEntry(DataEntry entry) {
-        if (entry.getGen().equals("with")) {
+        if (entry.getGen().equals(WITH.name())) {
             String fakerExpression = entry.getWith();
 
             // Handle special case for current_timestamp
@@ -129,7 +132,7 @@ public class FakerService {
     public Class<?> getDataEntryType(String withValue) {
         // Hacky way to determine the type of the faker method
         DataEntry dataEntry = new DataEntry();
-        dataEntry.setGen("with");
+        dataEntry.setGen(WITH.name());
         dataEntry.setWith(withValue);
 
         return interpretDataEntry(dataEntry).getClass();

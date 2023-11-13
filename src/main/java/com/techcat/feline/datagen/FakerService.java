@@ -1,8 +1,7 @@
 package com.techcat.feline.datagen;
 
 import com.github.javafaker.Faker;
-import com.techcat.feline.datagen.model.DataEntry;
-import com.techcat.feline.datagen.model.GenerationStrategy;
+import com.techcat.feline.datagen.model.ConfigEntry.DataEntry;
 import com.techcat.feline.utils.ParameterConverter;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +18,7 @@ public class FakerService {
     }
 
     public Object interpretDataEntry(DataEntry entry) {
-        if (entry.getGen().equals(WITH.name())) {
+        if (entry.getGen().equals(WITH.getName())) {
             String fakerExpression = entry.getWith();
 
             // Handle special case for current_timestamp
@@ -132,7 +131,7 @@ public class FakerService {
     public Class<?> getDataEntryType(String withValue) {
         // Hacky way to determine the type of the faker method
         DataEntry dataEntry = new DataEntry();
-        dataEntry.setGen(WITH.name());
+        dataEntry.setGen(WITH.getName());
         dataEntry.setWith(withValue);
 
         return interpretDataEntry(dataEntry).getClass();

@@ -2,7 +2,7 @@ package com.techcat.feline.datagen;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techcat.feline.datagen.model.ConfigEntry;
-import com.techcat.feline.datagen.model.DataEntry;
+import com.techcat.feline.datagen.model.ConfigEntry.DataEntry;
 import com.techcat.feline.utils.AvroTypeDeterminer;
 import org.apache.avro.Schema;
 

@@ -1,6 +1,7 @@
 package com.techcat.feline.datagen.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,4 +20,32 @@ public class ConfigEntry {
     private DataEntry key;
     private Map<String, Object> value;
     private Config config;
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class DataEntry {
+        @JsonProperty("_gen")
+        private String gen;
+        private String with;
+        private String matching;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Config {
+        private Throttle throttle;
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        @NoArgsConstructor
+        public static class Throttle {
+            private int ms;
+        }
+    }
+
 }

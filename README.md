@@ -16,6 +16,8 @@ Project Feline is a sophisticated data generation tool designed to populate Kafk
 
 ### Getting Started
 
+**Note:** To successfully run this project, Java 17 or later must be installed on your system. Ensure that you have the appropriate version of Java before attempting to run the project.
+
 #### Env Configuration
 ```yaml
   KAFKA_BOOTSTRAP_SERVERS: for kafka bootstrap servers - default = localhost:9092

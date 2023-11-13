@@ -23,6 +23,13 @@ Project Feline is a sophisticated data generation tool designed to populate Kafk
   CONFIG_FILE_PATH: for data generator config file path - default = ./config/config.json
 ```
 
+**Additional Kafka Connection Properties**
+
+Kafka connection properties should be prefixed with KAFKA_. The part after this prefix is transformed to match Kafka's connection property names.
+For example:
+- **KAFKA_SASL_MECHANISM** environment variable corresponds to the Kafka property sasl.mechanism 
+- **KAFKA_SECURITY_PROTOCOL** environment variable corresponds to the Kafka property security.protocol
+
 #### How to run
 ```bash
   ./run.sh

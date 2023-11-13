@@ -1,0 +1,140 @@
+[
+  {
+    "target": "kafka",
+    "topic": "customers",
+    "key": {
+      "_gen": "with",
+      "with": "#{Internet.uuid}"
+    },
+    "value": {
+      "profile": {
+        "name": {
+          "_gen": "with",
+          "with": "#{Name.full_name}"
+        },
+        "job_title": {
+          "_gen": "with",
+          "with": "#{Job.title}"
+        },
+        "blood_group": {
+          "_gen": "with",
+          "with": "#{Name.blood_group}"
+        },
+        "creditCardNumber": {
+          "_gen": "with",
+          "with": "#{Finance.credit_card}"
+        }
+      },
+      "address": {
+        "country": {
+          "_gen": "with",
+          "with": "#{Address.country}"
+        }
+      },
+      "contact": {
+        "email": {
+          "_gen": "with",
+          "with": "#{Internet.email_address}"
+        },
+        "phone": {
+          "_gen": "with",
+          "with": "#{PhoneNumber.phone_number}"
+        }
+      }
+    },
+    "config": {
+      "throttle": {
+        "ms": 5000
+      }
+    }
+  },
+  {
+    "target": "kafka",
+    "topic": "products",
+    "key": {
+      "_gen": "with",
+      "with": "#{Internet.uuid}"
+    },
+    "value": {
+      "name": {
+        "_gen": "with",
+        "with": "#{Commerce.product_name}"
+      },
+      "color": {
+        "_gen": "with",
+        "with": "#{Commerce.color}"
+      },
+      "price": {
+        "_gen": "with",
+        "with": "#{Number.number_between(40, 1000)}"
+      }
+    },
+    "config": {
+      "throttle": {
+        "ms": 2000
+      }
+    }
+  },
+  {
+    "target": "kafka",
+    "topic": "purchases",
+    "key": {
+      "_gen": "with",
+      "with": "#{Internet.uuid}"
+    },
+    "value": {
+      "customerId": {
+        "_gen": "matching",
+        "matching": "customers.key"
+      },
+      "productId": {
+        "_gen": "matching",
+        "matching": "products.key"
+      },
+      "timestamp": {
+        "_gen": "with",
+        "with": "#{current_timestamp}"
+      },
+      "quantity": {
+        "_gen": "with",
+        "with": "#{Number.number_between(1, 100)}"
+      }
+    },
+    "config": {
+      "throttle": {
+        "ms": 12000
+      }
+    }
+  },
+  {
+    "target": "kafka",
+    "topic": "returns",
+    "key": {
+      "_gen": "with",
+      "with": "#{Internet.uuid}"
+    },
+    "value": {
+      "customerId": {
+        "_gen": "matching",
+        "matching": "customers.key"
+      },
+      "purchaseId": {
+        "_gen": "matching",
+        "matching": "purchases.key"
+      },
+      "timestamp": {
+        "_gen": "with",
+        "with": "#{current_timestamp}"
+      },
+      "reason": {
+        "_gen": "with",
+        "with": "#{Lorem.paragraph}"
+      }
+    },
+    "config": {
+      "throttle": {
+        "ms": 60000
+      }
+    }
+  }
+]

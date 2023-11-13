@@ -6,7 +6,6 @@ services:
     restart: always
     ports:
       - "22181:2181"
-    network_mode: host
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     healthcheck:
@@ -14,48 +13,47 @@ services:
       interval: 5s
       retries: 25
 
-  kafka:
-    image: "confluentinc/cp-kafka:latest"
-    container_name: kafka
-    depends_on:
-      zookeeper:
-        condition: service_healthy
-    restart: always
+  redpanda-0:
+    command:
+      - redpanda
+      - start
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://redpanda-0:9092,external://localhost:19092
+      - --pandaproxy-addr internal://0.0.0.0:8082,external://0.0.0.0:18082
+      # Address the broker advertises to clients that connect to the HTTP Proxy.
+      - --advertise-pandaproxy-addr internal://redpanda-0:8082,external://localhost:18082
+      - --schema-registry-addr internal://0.0.0.0:8081,external://0.0.0.0:18081
+      # Redpanda brokers use the RPC API to communicate with eachother internally.
+      - --rpc-addr redpanda-0:33145
+      - --advertise-rpc-addr redpanda-0:33145
+      - --smp 1
+      - --memory 1G
+      - --mode dev-container
+      - --default-log-level=info
+    image: docker.redpanda.com/redpandadata/redpanda:v23.1.11
+    container_name: redpanda-0
+    volumes:
+      - redpanda-0:/var/lib/redpanda/data
     ports:
-      - "9092:9092"
-    network_mode: host
-    environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_ZOOKEEPER_CONNECT: localhost:2181
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS: 1
-      KAFKA_BROKER_ID: 1
-    healthcheck:
-      test: nc -zv localhost 9092|| exit 1
-      interval: 5s
-      retries: 25
+      - 18081:18081
+      - 18082:18082
+      - 19092:19092
 
-  schema-registry:
-    image: "confluentinc/cp-schema-registry:latest"
+  feline:
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
-      kafka:
-        condition: service_healthy
-    container_name: schema-registry
-    ports:
-      - "8081:8081"
-    network_mode: host
+      - redpanda-0
+    container_name: feline
     environment:
-      SCHEMA_REGISTRY_HOST_NAME: localhost
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://localhost:9092'
-    healthcheck:
-      test: nc -zv localhost 8081|| exit 1
-      interval: 5s
-      retries: 25
+      KAFKA_BOOTSTRAP_SERVERS: "redpanda-0:9092"
+      KAFKA_SCHEMA_REGISTRY_URL: "http://redpanda-0:8081"
 
   kafka-client:
     image: "confluentinc/cp-kafka:latest"
-    network_mode: host
     container_name: kafka-client
     command: [ "/bin/bash", "-c", "sleep infinity" ]
+
+volumes:
+  redpanda-0: {}

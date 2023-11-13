@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techcat.feline.datagen.model.ConfigEntry;
 import com.techcat.feline.datagen.model.Data;
 import com.techcat.feline.datagen.model.DataEntry;
+import com.techcat.feline.datagen.model.GenerationStrategy;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.techcat.feline.datagen.model.GenerationStrategy.MATCHING;
 
 public class DataInterpreter {
     private final FakerService fakerService;
@@ -21,7 +24,7 @@ public class DataInterpreter {
 
         // Interpretation for 'key'
         if (config.getKey() != null) {
-            if ("matching".equals(config.getKey().getGen())) {
+            if (MATCHING.name().equals(config.getKey().getGen())) {
                 // TODO handle complex matching
                 data.setKey(cacheService.getRandomKeyData(config.getKey().getMatching().split("\\.")[0]));
             } else {
@@ -53,7 +56,7 @@ public class DataInterpreter {
                     result.put(field, interpretValue((Map<String, Object>) value));
                 } else {
                     DataEntry dataEntry = new ObjectMapper().convertValue(value, DataEntry.class);
-                    if ("matching".equals(dataEntry.getGen())) {
+                    if (MATCHING.name().equals(dataEntry.getGen())) {
                         String[] parts = dataEntry.getMatching().split("\\.");
                         Object cachedValue = cacheService.getRandomKeyData(parts[0]);
                         result.put(field, cachedValue);
